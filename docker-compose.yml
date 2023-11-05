@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  # container del backend del microservizio login
+  loginBE:
+    image: openjdk:17-jdk-alpine
+    container_name: loginBE
+    ports:
+      - "8083:8080"
+      - "8003:8000"
+    expose:
+      - "8003"
+    depends_on:
+      - loginDB
+    networks:
+      - loginNetwork
+    volumes:
+      - ./build/libs/LoginBE-0.0.1-SNAPSHOT.jar:/app/app.jar
+    working_dir: /app
+    entrypoint: java -Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000 -jar /app/app.jar
+
+  # container del database del microservizio
+  loginDB:
+    image: mongo:5.0
+    container_name: loginDB
+    ports:
+      - "27020:27017"
+    networks:
+      - loginNetwork
+
+# rete interna del microservizio
+networks:
+  loginNetwork:
+    driver:
+      "bridge"
