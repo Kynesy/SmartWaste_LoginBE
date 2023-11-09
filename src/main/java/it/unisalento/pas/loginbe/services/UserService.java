@@ -53,4 +53,13 @@ public class UserService implements IUserService{
     public User getUser(String email, String applicationId) {
         return userRepository.findByEmailAndApplicationId(email, applicationId);
     }
+
+    @Override
+    public int deleteUser(String userId) {
+        if(userRepository.existsById(userId)){
+            userRepository.deleteById(userId);
+            return 0;
+        }
+        return 1;
+    }
 }
