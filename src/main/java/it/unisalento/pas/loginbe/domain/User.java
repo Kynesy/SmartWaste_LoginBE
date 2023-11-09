@@ -20,6 +20,8 @@ public class User {
      */
     @Id private String id;
 
+    private String role;
+
     /**
      * Applicazione a cui appartiene l'utente.
      */

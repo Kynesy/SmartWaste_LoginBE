@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id;
 @Setter
 public class UserDTO {
     private String id;
+    private String role;
     private String applicationId;
     private String email;
     private String password;
