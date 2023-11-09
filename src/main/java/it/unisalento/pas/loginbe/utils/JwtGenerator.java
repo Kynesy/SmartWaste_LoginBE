@@ -3,8 +3,10 @@ package it.unisalento.pas.loginbe.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.SignatureException;
 import it.unisalento.pas.loginbe.domain.User;
 
 import java.util.Date;
@@ -13,7 +15,8 @@ import java.util.Map;
 
 public class JwtGenerator implements IJwtGenerator{
     private String secret = "NsCz8OVJ8JJN57V7LUdxqpKQIQoby5OQEo+Dw+wUfg3VbOS61Z9YP38Rw/P7twE+";
-    private long expirationTime = 36000000; // In milliseconds
+    private long expirationTime = 36000000;
+    private String issuer = "LoginBE";
 
     @Override
     public String generateToken(User user) {
@@ -30,7 +33,7 @@ public class JwtGenerator implements IJwtGenerator{
 
         String jwtToken = Jwts.builder()
                 .setClaims(claims)
-                .setIssuer("LoginBE")
+                .setIssuer(issuer)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS256, secret)
@@ -51,6 +54,34 @@ public class JwtGenerator implements IJwtGenerator{
             return objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Claims decodeToken(String token) {
+        try {
+            return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+        } catch (Exception e) {
+            throw new RuntimeException("Error decoding JWT token: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public boolean verifyToken(String token) {
+        try {
+            Jws<Claims> claimsJws = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+            Claims claims = claimsJws.getBody();
+
+            // Verify issuer
+            if (!claims.getIssuer().equals(issuer)) {
+                return false;
+            }
+
+            long currentMillis = System.currentTimeMillis();
+
+            return claims.getExpiration().getTime() >= currentMillis;
+        } catch (Exception e) {
+            return false;
         }
     }
 }
