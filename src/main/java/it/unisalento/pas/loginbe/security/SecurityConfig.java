@@ -39,6 +39,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/user/exist/{userID}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/user/create").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/user/login").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/user/delete/{token}").permitAll()
+
                         .anyRequest().denyAll())
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();

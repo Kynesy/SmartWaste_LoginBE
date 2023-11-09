@@ -1,5 +1,6 @@
 package it.unisalento.pas.loginbe.controllers;
 
+import io.jsonwebtoken.Claims;
 import it.unisalento.pas.loginbe.domain.User;
 import it.unisalento.pas.loginbe.dto.UserDTO;
 import it.unisalento.pas.loginbe.security.AuthorizedApplications;
@@ -37,6 +38,23 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"message\": \"User creation failed\"}");
         }
     }
+
+    @DeleteMapping("/delete/{tokenJwt}")
+    public ResponseEntity<String> deleteUser(@PathVariable String tokenJwt){
+        if(!jwtGenerator.verifyToken(tokenJwt)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token not valid");
+        }
+
+        Claims claims = jwtGenerator.decodeToken(tokenJwt);
+        int result = userService.deleteUser((String) claims.get("sub"));
+        if(result == 0){
+            return ResponseEntity.status(HttpStatus.OK).body("User deleted");
+        }else{
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+    }
+
 
     @GetMapping("/exist/{userID}")
     public ResponseEntity<Boolean> existUser(@PathVariable String userID) {
