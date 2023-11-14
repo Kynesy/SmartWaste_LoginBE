@@ -30,6 +30,7 @@ public class JwtGenerator implements IJwtGenerator{
         Map<String, Object> claims = new HashMap<>();
         claims.put("sub", user.getId());
         claims.put("role", user.getRole());
+        claims.put("email", user.getEmail());
 
         String jwtToken = Jwts.builder()
                 .setClaims(claims)
@@ -48,6 +49,7 @@ public class JwtGenerator implements IJwtGenerator{
         data.put("id", user.getId());
         data.put("email", user.getEmail());
         data.put("token", this.generateToken(user));
+        data.put("role", user.getRole());
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {

@@ -55,7 +55,6 @@ public class UserController {
 
     }
 
-
     @GetMapping("/exist/{userID}")
     public ResponseEntity<Boolean> existUser(@PathVariable String userID) {
         if (userService.userExist(userID)) {
