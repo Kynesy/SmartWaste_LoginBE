@@ -1,66 +1,74 @@
 package it.unisalento.pas.loginbe.security;
 
+import it.unisalento.pas.loginbe.services.UserDetailsCustomService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.List;
-
-/**
- * Configurazione della sicurezza per l'applicazione.
- */
 @Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-    /**
-     * Configura le regole di sicurezza per le richieste HTTP.
-     *
-     * @param http Oggetto HttpSecurity da configurare
-     * @return SecurityFilterChain configurato
-     * @throws Exception Eccezione in caso di errori di configurazione
-     */
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(httpSecurityCorsConfigurer -> {
-            httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource());
-        });
-        http.csrf(AbstractHttpConfigurer::disable);
-        // Solo gli utenti autorizzati possono accedere alle API
-        http.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        // UserController
-                        .requestMatchers(HttpMethod.GET, "/api/user/exist/{userID}").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/user/create").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/user/login").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/user/delete/{token}").permitAll()
+//@EnableWebSecurity
+@EnableMethodSecurity
+//(securedEnabled = true,
+//jsr250Enabled = true,
+//prePostEnabled = true) // by default
+public class SecurityConfig { // extends WebSecurityConfigurerAdapter {
+    @Autowired
+    UserDetailsCustomService userDetailsService;
 
-                        .anyRequest().denyAll())
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        return http.build();
+    @Autowired
+    private AuthEntryPointJwt unauthorizedHandler;
+
+    @Bean
+    public AuthTokenFilter authenticationJwtTokenFilter() {
+        return new AuthTokenFilter();
     }
 
-    /**
-     * Configura le impostazioni CORS (Cross-Origin Resource Sharing).
-     *
-     * @return Oggetto CorsConfigurationSource configurato
-     */
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.addAllowedMethod("*");
-        configuration.addAllowedHeader("*");
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+
+        return authProvider;
+    }
+
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable())
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/test/**").permitAll()
+                        .anyRequest().authenticated());
+
+        http.authenticationProvider(authenticationProvider());
+
+        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 }
