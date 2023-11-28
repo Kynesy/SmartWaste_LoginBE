@@ -9,11 +9,13 @@ import it.unisalento.pas.loginbe.models.requests.LoginRequest;
 import it.unisalento.pas.loginbe.models.requests.SignupRequest;
 import it.unisalento.pas.loginbe.models.responses.JwtResponse;
 import it.unisalento.pas.loginbe.models.responses.MessageResponse;
+import it.unisalento.pas.loginbe.models.responses.SignUpResponse;
 import it.unisalento.pas.loginbe.respositories.IUserRepository;
 import it.unisalento.pas.loginbe.respositories.IUserRepository;
 import it.unisalento.pas.loginbe.utils.JwtUtils;
 import it.unisalento.pas.loginbe.services.UserDetailsCustomService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -65,7 +67,7 @@ public class AuthController {
         jwtResponse.setId(userDetails.getId());
         jwtResponse.setUsername(userDetails.getUsername());
         jwtResponse.setEmail(userDetails.getEmail());
-        jwtResponse.setRoles(roles.get(0));
+        jwtResponse.setRole(roles.get(0));
 
         return ResponseEntity.ok(jwtResponse);
     }
@@ -92,9 +94,14 @@ public class AuthController {
         user.setPassword(encoder.encode(signUpRequest.getPassword()));
         user.setRole(signUpRequest.getRole());
 
-        userRepository.save(user);
+        user = userRepository.save(user);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        SignUpResponse signUpResponse = new SignUpResponse();
+        signUpResponse.setId(user.getId());
+        signUpResponse.setMessage("Sign-up successful");
+
+
+        return ResponseEntity.status(HttpStatus.OK).body(signUpResponse);
     }
 }
 
