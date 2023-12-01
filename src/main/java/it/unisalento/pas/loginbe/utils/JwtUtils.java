@@ -2,7 +2,9 @@ package it.unisalento.pas.loginbe.utils;
 
 
 import java.security.Key;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 import it.unisalento.pas.loginbe.models.UserDetailsCustom;
 import it.unisalento.pas.loginbe.services.UserDetailsCustomService;
@@ -26,15 +28,19 @@ public class JwtUtils {
     @Value("${loginBE.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
-    public String generateJwtToken(Authentication authentication) {
+    public String generateJwtToken(Authentication authentication, String role) {
 
         UserDetailsCustom userPrincipal = (UserDetailsCustom) authentication.getPrincipal();
 
+        Claims claims = Jwts.claims();
+        claims.setExpiration(new Date((new Date()).getTime() + jwtExpirationMs));
+        claims.setIssuedAt(new Date());
+        claims.setSubject(userPrincipal.getUsername());
+        claims.put("role", role);
+
+
         return Jwts.builder()
-                .setSubject((userPrincipal.getUsername()))
-                .setIssuer("localhost:8080")
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .setClaims(claims)
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
