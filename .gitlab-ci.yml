@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - deploy
 
 build_procedure:
   stage: build
@@ -15,3 +16,15 @@ test_procedure:
   image: gradle:jdk17
   script:
     - ./gradlew test
+
+deploy_procedure:
+  stage: deploy
+  before_script:
+    - chmod 400 $SSH_KEY
+  script:
+    - ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@$SSH_IP "
+      cd /home/ubuntu/LoginBE/ &&
+      sudo git pull origin &&
+      sudo docker compose down &&
+      sudo docker compose build --no-cache &&
+      sudo docker compose up -d"
