@@ -6,7 +6,7 @@ services:
     image: openjdk:17-jdk-alpine
     container_name: loginBE
     ports:
-      - "8083:8080"
+      - "80:8080"
       - "8003:8000"
     expose:
       - "8003"
