@@ -24,7 +24,7 @@ services:
     image: mongo:5.0
     container_name: loginDB
     ports:
-      - "27020:27017"
+      - "27017:27017"
     networks:
       - loginNetwork
 
