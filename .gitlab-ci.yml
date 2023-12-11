@@ -26,5 +26,4 @@ deploy_procedure:
       cd /home/ubuntu/LoginBE/ &&
       sudo git pull origin &&
       sudo docker compose down &&
-      sudo docker compose build --no-cache &&
       sudo docker compose up -d"
