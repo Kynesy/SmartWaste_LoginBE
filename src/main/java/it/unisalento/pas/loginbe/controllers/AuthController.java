@@ -107,7 +107,7 @@ public class AuthController {
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable String id){
-        if(userService.deleteById(id)!=0){
+        if(userService.deleteById(id)==1){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("User ID not found."));
         }
 

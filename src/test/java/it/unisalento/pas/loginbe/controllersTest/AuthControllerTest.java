@@ -17,8 +17,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Collection;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -59,10 +64,47 @@ public class AuthControllerTest {
         jwtResponse.setEmail("test@example.com");
         jwtResponse.setRole("ROLE_USER");
 
-        when(authenticationManager.authenticate(any()))
-                .thenReturn(null); // Mock authentication result
+        Authentication authentication = new Authentication() {
+            @Override
+            public Collection<? extends GrantedAuthority> getAuthorities() {
+                return null;
+            }
 
-        when(jwtUtils.generateJwtToken(null, "ROLE_USER"))
+            @Override
+            public Object getCredentials() {
+                return null;
+            }
+
+            @Override
+            public Object getDetails() {
+                return null;
+            }
+
+            @Override
+            public Object getPrincipal() {
+                return null;
+            }
+
+            @Override
+            public boolean isAuthenticated() {
+                return false;
+            }
+
+            @Override
+            public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+
+            }
+
+            @Override
+            public String getName() {
+                return null;
+            }
+        };
+
+        when(authenticationManager.authenticate(any()))
+                .thenReturn(authentication); // Mock authentication result
+
+        when(jwtUtils.generateJwtToken(authentication, "ROLE_USER"))
                 .thenReturn("mockToken"); // Mock JWT token generation
 
         mockMvc.perform(post("/api/auth/signin")
