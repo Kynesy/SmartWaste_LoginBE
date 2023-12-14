@@ -10,6 +10,7 @@ import it.unisalento.pas.loginbe.models.requests.SignupRequest;
 import it.unisalento.pas.loginbe.models.responses.JwtResponse;
 import it.unisalento.pas.loginbe.respositories.IUserRepository;
 import it.unisalento.pas.loginbe.services.IUserService;
+import it.unisalento.pas.loginbe.services.UserDetailsCustomService;
 import it.unisalento.pas.loginbe.utils.JwtUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -46,6 +48,9 @@ public class AuthControllerTest {
     @MockBean
     PasswordEncoder encoder;
 
+    @MockBean
+    UserDetailsCustomService userDetailsCustomService;
+
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -63,8 +68,11 @@ public class AuthControllerTest {
 
         Authentication authentication = new UsernamePasswordAuthenticationToken("testUser", "testPassword");
 
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 
-        UserDetailsCustom userDetails = new UserDetailsCustom("1", "testUser", "test@example.com", "password", Collections.emptyList());
+        UserDetailsCustom userDetails = new UserDetailsCustom("1", "testUser", "test@example.com", "password", authorities);
+        when(userDetailsCustomService.loadUserByUsername(loginRequest.getUsername())).thenReturn(userDetails);
         when(authentication.getPrincipal()).thenReturn(userDetails);
 
         when(jwtUtils.generateJwtToken(any(), any())).thenReturn("mockToken");
