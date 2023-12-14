@@ -20,6 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -27,6 +28,7 @@ import java.util.Collection;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,54 +59,7 @@ public class AuthControllerTest {
         Gson gson = new Gson();
         String json = gson.toJson(loginRequest);
 
-        JwtResponse jwtResponse = new JwtResponse();
-        jwtResponse.setToken("mockToken");
-        jwtResponse.setId("mockId");
-        jwtResponse.setUsername("testUser");
-        jwtResponse.setEmail("test@example.com");
-        jwtResponse.setRole("ROLE_USER");
-
-        Authentication authentication = new Authentication() {
-            @Override
-            public Collection<? extends GrantedAuthority> getAuthorities() {
-                return null;
-            }
-
-            @Override
-            public Object getCredentials() {
-                return null;
-            }
-
-            @Override
-            public Object getDetails() {
-                return null;
-            }
-
-            @Override
-            public Object getPrincipal() {
-                return null;
-            }
-
-            @Override
-            public boolean isAuthenticated() {
-                return false;
-            }
-
-            @Override
-            public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-
-            }
-
-            @Override
-            public String getName() {
-                return null;
-            }
-        };
-
-        when(authenticationManager.authenticate(any()))
-                .thenReturn(authentication); // Mock authentication result
-
-        when(jwtUtils.generateJwtToken(authentication, "ROLE_USER"))
+        when(jwtUtils.generateJwtToken(any(), any()))
                 .thenReturn("mockToken"); // Mock JWT token generation
 
         mockMvc.perform(post("/api/auth/signin")
@@ -144,9 +99,12 @@ public class AuthControllerTest {
 
     @Test
     void deleteUserTest() throws Exception {
-        when(userService.deleteById("mockId")).thenReturn(1);
+        String userID = "mockUserID";
 
-        mockMvc.perform(delete("/api/auth/delete/mockId"))
+        when(userService.deleteById(userID)).thenReturn(0);
+
+        mockMvc.perform(delete("/api/user/delete/{userID}", userID)
+                        .with(user("user").authorities(new SimpleGrantedAuthority("ROLE_USER"))))
                 .andExpect(status().isOk());
     }
 

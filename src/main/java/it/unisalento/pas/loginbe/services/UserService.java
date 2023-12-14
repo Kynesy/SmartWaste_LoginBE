@@ -27,11 +27,11 @@ public class UserService implements IUserService{
 
     @Override
     public int deleteById(String userId) {
-        if(!userRepository.existsById(userId)){
-            return 1;
+        if(userRepository.existsById(userId)){
+            userRepository.deleteById(userId);
+            return 0;
         }
 
-        userRepository.deleteById(userId);
-        return 0;
+        return 1;
     }
 }
