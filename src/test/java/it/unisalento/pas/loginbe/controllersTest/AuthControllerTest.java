@@ -4,6 +4,7 @@ import com.nimbusds.jose.shaded.gson.Gson;
 
 
 import it.unisalento.pas.loginbe.models.User;
+import it.unisalento.pas.loginbe.models.UserDetailsCustom;
 import it.unisalento.pas.loginbe.models.requests.LoginRequest;
 import it.unisalento.pas.loginbe.models.requests.SignupRequest;
 import it.unisalento.pas.loginbe.models.responses.JwtResponse;
@@ -25,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -59,8 +61,13 @@ public class AuthControllerTest {
         Gson gson = new Gson();
         String json = gson.toJson(loginRequest);
 
-        when(jwtUtils.generateJwtToken(any(), any()))
-                .thenReturn("mockToken"); // Mock JWT token generation
+        Authentication authentication = new UsernamePasswordAuthenticationToken("testUser", "testPassword");
+
+
+        UserDetailsCustom userDetails = new UserDetailsCustom("1", "testUser", "test@example.com", "password", Collections.emptyList());
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        when(jwtUtils.generateJwtToken(any(), any())).thenReturn("mockToken");
 
         mockMvc.perform(post("/api/auth/signin")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -103,7 +110,7 @@ public class AuthControllerTest {
 
         when(userService.deleteById(userID)).thenReturn(0);
 
-        mockMvc.perform(delete("/api/user/delete/{userID}", userID)
+        mockMvc.perform(delete("/api/auth/delete/{id}", userID)
                         .with(user("user").authorities(new SimpleGrantedAuthority("ROLE_USER"))))
                 .andExpect(status().isOk());
     }

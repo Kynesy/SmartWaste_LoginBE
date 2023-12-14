@@ -105,13 +105,14 @@ public class AuthController {
 
 
     @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('OPERATOR')")
     public ResponseEntity<?> deleteUser(@PathVariable String id){
-        if(userService.deleteById(id)==1){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("User ID not found."));
+        int result = userService.deleteById(id);
+        if (result == 0) {
+            return ResponseEntity.status(HttpStatus.OK).body("{\"message\": \"User deleted successfully\"}");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"message\": \"User deletion failed\"}");
         }
-
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("User deleted successfully"));
     }
 }
 
