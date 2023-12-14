@@ -47,7 +47,7 @@ public class AuthControllerTest {
 
     @MockBean
     PasswordEncoder encoder;
-    
+
     @MockBean
     JwtUtils jwtUtils;
 
