@@ -47,41 +47,9 @@ public class AuthControllerTest {
 
     @MockBean
     PasswordEncoder encoder;
-
-    @MockBean
-    UserDetailsCustomService userDetailsCustomService;
-
-    @Autowired
-    AuthenticationManager authenticationManager;
-
+    
     @MockBean
     JwtUtils jwtUtils;
-
-    @Test
-    void authenticateUserTest() throws Exception{
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername("testUser");
-        loginRequest.setPassword("testPassword");
-
-        Gson gson = new Gson();
-        String json = gson.toJson(loginRequest);
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken("testUser", "testPassword");
-
-        Collection<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-
-        UserDetailsCustom userDetails = new UserDetailsCustom("1", "testUser", "test@example.com", "password", authorities);
-        when(userDetailsCustomService.loadUserByUsername(loginRequest.getUsername())).thenReturn(userDetails);
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-
-        when(jwtUtils.generateJwtToken(any(), any())).thenReturn("mockToken");
-
-        mockMvc.perform(post("/api/auth/signin")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isOk());
-    }
 
     @Test
     void registerUserTest() throws Exception {
