@@ -42,7 +42,7 @@ public class AuthControllerTest {
     @MockBean
     PasswordEncoder encoder;
 
-    @MockBean
+    @Autowired
     AuthenticationManager authenticationManager;
 
     @MockBean
@@ -144,7 +144,7 @@ public class AuthControllerTest {
 
     @Test
     void deleteUserTest() throws Exception {
-        when(userService.deleteById("mockId")).thenReturn(0);
+        when(userService.deleteById("mockId")).thenReturn(1);
 
         mockMvc.perform(delete("/api/auth/delete/mockId"))
                 .andExpect(status().isOk());
