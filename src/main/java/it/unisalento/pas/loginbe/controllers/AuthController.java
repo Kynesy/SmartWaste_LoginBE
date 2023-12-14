@@ -12,6 +12,7 @@ import it.unisalento.pas.loginbe.models.responses.MessageResponse;
 import it.unisalento.pas.loginbe.models.responses.SignUpResponse;
 import it.unisalento.pas.loginbe.respositories.IUserRepository;
 import it.unisalento.pas.loginbe.respositories.IUserRepository;
+import it.unisalento.pas.loginbe.services.IUserService;
 import it.unisalento.pas.loginbe.utils.JwtUtils;
 import it.unisalento.pas.loginbe.services.UserDetailsCustomService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class AuthController {
     AuthenticationManager authenticationManager;
 
     @Autowired
-    IUserRepository userRepository;
+    IUserService userService;
 
     @Autowired
     PasswordEncoder encoder;
@@ -73,13 +74,13 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+        if (userService.existByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Error: Username is already taken!"));
         }
 
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+        if (userService.existByEmail(signUpRequest.getEmail())) {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Error: Email is already in use!"));
@@ -93,7 +94,7 @@ public class AuthController {
         user.setPassword(encoder.encode(signUpRequest.getPassword()));
         user.setRole(signUpRequest.getRole());
 
-        user = userRepository.save(user);
+        user = userService.createUser(user);
 
         SignUpResponse signUpResponse = new SignUpResponse();
         signUpResponse.setId(user.getId());
@@ -106,11 +107,9 @@ public class AuthController {
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable String id){
-        if(!userRepository.existsById(id)){
+        if(userService.deleteById(id)!=0){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("User ID not found."));
         }
-
-        userRepository.deleteById(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("User deleted successfully"));
     }

@@ -8,6 +8,7 @@ import it.unisalento.pas.loginbe.models.requests.LoginRequest;
 import it.unisalento.pas.loginbe.models.requests.SignupRequest;
 import it.unisalento.pas.loginbe.models.responses.JwtResponse;
 import it.unisalento.pas.loginbe.respositories.IUserRepository;
+import it.unisalento.pas.loginbe.services.IUserService;
 import it.unisalento.pas.loginbe.utils.JwtUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class AuthControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    IUserRepository userRepository;
+    IUserService userService;
 
     @MockBean
     PasswordEncoder encoder;
@@ -88,10 +89,10 @@ public class AuthControllerTest {
         user.setPassword("encodedPassword");
         user.setRole("ROLE_USER");
 
-        when(userRepository.existsByUsername("newUser")).thenReturn(false);
-        when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+        when(userService.existByUsername("newUser")).thenReturn(false);
+        when(userService.existByEmail("new@example.com")).thenReturn(false);
         when(encoder.encode("password")).thenReturn("encodedPassword");
-        when(userRepository.save(any())).thenReturn(user);
+        when(userService.createUser(any())).thenReturn(user);
 
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -101,7 +102,7 @@ public class AuthControllerTest {
 
     @Test
     void deleteUserTest() throws Exception {
-        when(userRepository.existsById("mockId")).thenReturn(true);
+        when(userService.deleteById("mockId")).thenReturn(0);
 
         mockMvc.perform(delete("/api/auth/delete/mockId"))
                 .andExpect(status().isOk());
