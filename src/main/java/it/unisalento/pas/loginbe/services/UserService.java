@@ -12,12 +12,12 @@ public class UserService implements IUserService{
 
     @Override
     public boolean existByUsername(String username) {
-        return false;
+        return userRepository.existsByUsername(username);
     }
 
     @Override
     public boolean existByEmail(String email) {
-        return false;
+        return userRepository.existsByEmail(email);
     }
 
     @Override
